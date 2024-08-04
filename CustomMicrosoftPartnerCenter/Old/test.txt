@@ -1,0 +1,56 @@
+# setup redirect uri in entra app reg
+Clear-MsalTokenCache
+PS C:\Windows\system32> $authResult = Get-MsalToken -ClientId "56fe70e2-69c1-41a3-80b9-66912b0a4a76" -TenantId "72465188-6db8-4510-ba33-40392d5db724" -Scopes "https://api.partnercustomeradministration.microsoft.com/.default" -RedirectUri "http://localhost"
+$authResult.AccessToken
+
+<#
+https://login.microsoftonline.com/72465188-6db8-4510-ba33-40392d5db724/oauth2/v2.0/authorize?client_id=56fe70e2-69c1-41a3-80b9-66912b0a4a76&response_type=code&redirect_uri=https://login.microsoftonline.com/common/oauth2/nativeclient&response_mode=query&scope=https://api.partnercustomeradministration.microsoft.com/.default&state=12345
+# manually copy authorization code
+$code = "0.AXkAiFFGcrhtEEW6M0A5LV23JOJw_lbBaaNBgLlmkSsKSnaUAL0.AgABBAIAAAApTwJmzXqdR4BN2miheQMYAgDs_wUA9P9ZoJPIka7UkWdFfGjEpLNrdUg5XBpLPzhg58eUtGMeL8WPL9RkDe7Thv-yChMhKWZvb65uycA3FCFGYdPMHOyHFy5FzMRAU4mQa54nxX5hR1CvYKd3jEcpDq-ZD2cQ3hNy1LCyc0GeJ-OzyylEPhfsFuIFN791s15hPNQrdLRzjpchdAAvsdGyqsqCWFQOy4yLV4xmyJJcmrCHZrMbxsVLByJ_zvxjpDLUav6fiRiX7UEmSYZY67xvX-F8iUU6JJnFfgKSNHOvvQAHj_xX5dPP59D-hMQv98nGwa6O7LWe1PtPlptOs1AsuQODAk9Rf-q08-M-zajeJCct5I6e1uk-HMrRBCe-8OymzHxH5YkfylbUdjWx-CFH-e2W_gesqDYYnzBnivKjcOshHf3BkBh9okMkuQTSicgBFUTKABDAZYOsHfdZXuBGpkEr3J-_FYsQ7KwyeJXAMZ-80LMKrGPIgDKfihl2HLyrRWKs6oXS7h1OBRrYsMSpdl6N4iaWnE20dHEkD14LCsTTwsgTPeX6D92J35yJVQsGhAaPPWN7bSnx5QqpA2sZ1wHmO_52G08LetMZ2xphdKnrUDGAVfVOeRrNiW6-65t0kWyBAPH0kErigoqVkooWKrmE-Rx0fzVJYtLmVMu0LSBvPopPMTwhbkMwiXLX7YwO9zsKofoDP7hnCinMQ7G2h9Uk42y0C8v0FF4ype9PAKcnlnHelLZ60Il5BXWVhHYJLGqXWUB4hmI"
+$tokenUrl = "https://login.microsoftonline.com/$tenantId/oauth2/token"
+$body = @{
+    client_id     = "56fe70e2-69c1-41a3-80b9-66912b0a4a76"
+    redirect_uri  = "https://login.microsoftonline.com/common/oauth2/nativeclient"
+    client_secret = "GZk8Q~RaZvYbdQLUfaejuqE40vQc8aODbi7qwcvh"
+    code          = $code
+    grant_type    = "authorization_code"
+}
+
+$response = Invoke-RestMethod -Method Post -Uri $tokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
+$accessToken = $response.access_token
+#>
+
+
+
+ELLER AUTOMATISK
+
+
+
+$authUrl = "https://login.microsoftonline.com/72465188-6db8-4510-ba33-40392d5db724/oauth2/v2.0/authorize?client_id=56fe70e2-69c1-41a3-80b9-66912b0a4a76&response_type=code&redirect_uri=http://localhost:8080&response_mode=query&scope=https://api.partnercustomeradministration.microsoft.com/.default&state=12345"
+Start-Process $authUrl
+
+# Step 2: Set up a local HTTP listener to capture the authorization code
+$listener = New-Object System.Net.HttpListener
+$listener.Prefixes.Add("http://localhost:8080/")
+$listener.Start()
+
+# Wait for an incoming request and capture the authorization code
+$context = $listener.GetContext()
+$code = $context.Request.QueryString["code"]
+$listener.Stop()
+
+Write-Output "Authorization code received: $code"
+
+# Step 3: Exchange the authorization code for an access token
+$tokenUrl = "https://login.microsoftonline.com/72465188-6db8-4510-ba33-40392d5db724/oauth2/token"
+$body = @{
+    client_id     = "56fe70e2-69c1-41a3-80b9-66912b0a4a76"
+    redirect_uri  = "http://localhost:8080/"
+    client_secret = "GZk8Q~RaZvYbdQLUfaejuqE40vQc8aODbi7qwcvh"
+    code          = $code
+    grant_type    = "authorization_code"
+}
+
+$response = Invoke-RestMethod -Method Post -Uri $tokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
+$accessToken = $response.access_token
+
