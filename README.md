@@ -35,7 +35,8 @@ In the module source files, navigate to the "...\CustomMicrosoftPartnerCenter\Va
 
 #### Authentication
 In the authentication.ps1 file, you can save the values for your Tenant ID, Client ID and the Client secret in the variables.
-You should know what values to put in the variables if you have followed the whole preparation process. 
+You should know what values to put in the variables if you have followed the whole preparation process.
+It is strongly recommended to use Azure Key Vault and return the values into the variables from Key Vault, rather than paste the values as plain text directly into the variables.
 If you specify the variables in the authentication.ps1 file, you won't need to specify the Tenant ID, Client ID and the Client secret every time you obtain a new access token.
 Alternatively, you can leave the variables in "authentication.ps1" empty and provide all the associated parameters manually when you call the New-CMPCAccessToken cmdlet.
 
@@ -60,29 +61,253 @@ Import-Module -FullyQualifiedName "...\CustomMicrosoftPartnerCenter.psm1"
 
 ### Cmdlet documentation
 
-#### 
-Purpose: 
+#### New-CMPCAccessToken
+Description: Authenticates and returns an access token (Bearer token) using an app registration with a client secret. The token will contain all the admin consented API permissions on the app registration. Provide your own values using the attributes, or read the *Preparation* to understand how to provide standard values for the attributes by using the "...\CustomMicrosoftPartnerCenter\Variables\authentication.ps1" file.
+
 Parameters:
-- 
-- 
-- 
-Example 1: 
-Some code
+- tenantId [String] [*Optional / Mandatory*] (provide the Tenant ID in which the app registration exists)
+- clientId [String] [*Optional / Mandatory*] (provide the Client ID or Application ID associated with your app registration)
+- clientSecret [String] [*Optional / Mandatory*] (provide the client secret associated with your app registration)
 
-Response:
-Some response
+Example 1: Obtain an access token by using the attributes
+```powershell
+$accessToken = New-CMPCAccessToken -tenantId "GUID" -clientId "GUID" -clientSecret "GUID"
+```
+*Response: A JSON Web Token (JWT) as a string*
 
-#### 
-Purpose: 
+Example 2: Obtain an access token by preparing standard values for the attributes
+```powershell
+# In the "...\CustomMicrosoftPartnerCenter\Variables\authentication.ps1" file, specify the correct values for the variables
+$accessToken = New-CMPCAccessToken
+```
+*Response: A JSON Web Token (JWT) as a string*
+
+#### Get-CMPCAdminRelationship
+Description: Returns a PowerShell object with either only the general admin relationship info, or all admin relationship info (the general admin relationship info, access assignments info, operations info and requests info). Choose between returning info about only one specific relationship or all the existing relationships.
+
 Parameters:
-- 
-- 
-- 
-Example 1: 
-Some code
+- **accessToken** [String] [*Mandatory*] (retrieve the access token by using the New-CMPCAccessToken cmdlet, and provide it as a parameter for authorization purposes)
+- **adminRelationshipId** [String] [*Optional*] (provide the admin relationship ID to return information about only one specific admin relationship, or leave the parameter empty to return information about all the existing admin relationships)
+- **extendedInformation** [Switch] [*Optional*] (you can choose to include all info by activating the switch, or include only the general info by not specifying the switch (if you retrieve extended information about all the existing admin relationships, the time to complete the command may be significant))
 
-Response:
-Some response
+Example 1: Retrieve extended information about only one specific admin relationship
+```powershell
+$accessToken = New-CMPCAccessToken -tenantId "GUID" -clientId "GUID" -clientSecret "GUID"
+$adminRelationship = Get-CMPCAdminRelationship -accessToken $accessToken -adminRelationshipId "GUID-GUID" -extendedInformation
+```
+*Response: A PowerShell object with the following format*
+```powershell
+$adminRelationship = @{
+    "@" = ... # A PowerShell object with general info
+    AccessAssignments = ... # A PowerShell object with access assignments info
+    Operations = ... # A PowerShell object with operations info
+    Requests = ... # A PowerShell object with requests info
+}
+```
+
+Example 2: Retrieve extended information about all existing admin relationships
+```powershell
+$accessToken = New-CMPCAccessToken -tenantId "GUID" -clientId "GUID" -clientSecret "GUID"
+$adminRelationship = Get-CMPCAdminRelationship -accessToken $accessToken -extendedInformation
+```
+*Response: An array with the following format*
+```powershell
+$adminRelationships = @(
+    @{
+        "@" = ... # A PowerShell object with general info of one admin relationship
+        AccessAssignments = ... # A PowerShell object with access assignments info of one admin relationship
+        Operations = ... # A PowerShell object with operations info of one admin relationship
+        Requests = ... # A PowerShell object with requests info of one admin relationship
+    },
+    @{
+        "@" = ... # A PowerShell object with general info of another admin relationship
+        AccessAssignments = ... # A PowerShell object with access assignments info of another admin relationship
+        Operations = ... # A PowerShell object with operations info of another admin relationship
+        Requests = ... # A PowerShell object with requests info of another admin relationship
+    },
+    ...
+)
+```
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
+
+#### Cmdlet
+Description: 
+
+Parameters:
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+- **** [] [*Optional / Mandatory*] ()
+
+Example 1: 
+```powershell
+some code
+```
+
+Example 2: 
+```powershell
+some code
+```
+
+Response: 
 
 ### Debugging
 If any cmdlet fails, it terminates the script execution and provides an explanation of the failure, as well as the generic PowerShell exception message.

@@ -1,8 +1,10 @@
 $public = @(Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue)
 $private = @(Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue)
 $variables = @(Get-ChildItem -Path $PSScriptRoot\Variables\*.ps1 -ErrorAction SilentlyContinue)
+$prod = @(Get-ChildItem -Path $PSScriptRoot\ProdV2\*.ps1 -ErrorAction SilentlyContinue)
+$dev = @(Get-ChildItem -Path $PSScriptRoot\DevV2\*.ps1 -ErrorAction SilentlyContinue)
 
-foreach ($function in @($public + $private))
+foreach ($function in @($public + $private + $prod + $dev))
 {
     try
     {

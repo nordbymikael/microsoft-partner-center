@@ -1,10 +1,14 @@
+# Define your admin relationship name (all admin relationships must have unique names and should not exceed 50 characters, for example: "ShortenedCompanyName_$(New-Guid)")
+$CMPC_AdminRelationshipDisplayName = ""
 
+# Define your admin relationship duration (maximum number is 730 days: "P730D")
+$CMPC_AdminRelationshipDuration = ""
 
+# Define your admin relationship auto extend duration (maximum number is 180 days: "P180D")
+$CMPC_AdminRelationshipAutoExtendDuration = ""
 
-
-
-# Specify the IDs of your security groups to create a standard permission model for your future admin relationships
-$CMPC_GDAPAccess = @'
+# Provide the IDs of your Entra security groups to create a standard permission model for your future admin relationships (keep in mind that auto extention is not supported for the Global Administrator role)
+$CMPC_AdminRelationshipUnifiedRoles = @'
 [
     {"roleDefinitionId": "62e90394-69f5-4237-9190-012177145e10", "roleDefinitionName": "Global Administrator", "securityGroupId": ""},
     {"roleDefinitionId": "44367163-eba1-44c3-98af-f5787879f96a", "roleDefinitionName": "Dynamics 365 Administrator", "securityGroupId": ""},
