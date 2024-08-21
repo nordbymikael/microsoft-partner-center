@@ -1,4 +1,4 @@
-# Define your admin relationship name (all admin relationships must have unique names and should not exceed 50 characters, for example: "ShortenedCompanyName_$(New-Guid)")
+# Define your admin relationship name (all admin relationships must have unique names and cannot exceed 50 characters, for example: "ShortenedCompanyName_$(New-Guid)")
 $CMPC_AdminRelationshipDisplayName = ""
 
 # Define your admin relationship duration (maximum number is 730 days: "P730D")

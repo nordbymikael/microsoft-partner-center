@@ -30,7 +30,6 @@ function Remove-CMPCAdminRelationship {
             default {
                 return "The admin relationship with id $($adminRelationshipId) has already ended."
             }
-            
         }
     
         return "Ended the admin relationship with the id $($adminRelationshipId)."

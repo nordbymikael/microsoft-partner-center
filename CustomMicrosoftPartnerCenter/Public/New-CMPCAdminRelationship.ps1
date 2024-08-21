@@ -4,7 +4,7 @@ function New-CMPCAdminRelationship {
         [Parameter(Mandatory = $true)] [hashtable]$accessToken,
         [Parameter(Mandatory = $false)] [string]$displayName,
         [Parameter(Mandatory = $false)] [string]$duration,
-        [Parameter(Mandatory = $false)] [array]$unifiedRoles = @(),
+        [Parameter(Mandatory = $false)] [array]$unifiedRoles,
         [Parameter(Mandatory = $false)] [string]$autoExtendDuration,
         [Parameter(Mandatory = $false)] [switch]$usePredefinedUnifiedRoles,
         [Parameter(Mandatory = $false)] [switch]$usePredefinedVariables
@@ -30,10 +30,12 @@ function New-CMPCAdminRelationship {
     {
         throw "At least one of the mandaroty parameters is not provided (displayName or duration)."
     }
-    elseif (!$usePredefinedUnifiedRoles -and !$unifiedRoles) {
+    elseif (!$usePredefinedUnifiedRoles -and !$unifiedRoles)
+    {
         throw "When the usePredefinedUnifiedRoles parameter is not used, the unifiedRoles parameter is mandatory."
     }
-    elseif ($usePredefinedUnifiedRoles -and $unifiedRoles) {
+    elseif ($usePredefinedUnifiedRoles -and $unifiedRoles)
+    {
         throw "The unifiedRoles and usePredefinedUnifiedRoles parameters cannot be used together."
     }
 

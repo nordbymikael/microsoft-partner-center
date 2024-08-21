@@ -6,60 +6,50 @@ function Get-CMPCAdminRelationship {
         [Parameter(Mandatory = $false)] [switch]$extendedInformation
     )
 
-    try {
+    if (!$adminRelationshipId)
+    {
+        $uri = "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships"
+
+        if ($extendedInformation)
+        {
+            $adminRelationshipCollection = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri $uri
+
+            foreach ($adminRelationshipObject in $adminRelationshipCollection) {
+                $adminRelationship = @{
+                    "@" = $adminRelationshipObject
+                    accessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/accessAssignments"
+                    operations = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/operations"
+                    requests = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/requests"
+                }
+                $allAdminRelationships += $adminRelationship
+            }
+        }
+        else {
+            $allAdminRelationships = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri $uri
+        }
+
+        return $allAdminRelationships
+    }
+    else {
         $headers = @{
             Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken.DelegatedAdminRelationship)"
         }
+        $adminRelationshipObject = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
+        $adminRelationshipObject.PSObject.Properties.Remove("@odata.context")
 
-        if (!$adminRelationshipId)
+        if ($extendedInformation)
         {
-            $allAdminRelationships = @()
-            $uri = "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships"
-
-            if ($extendedInformation)
-            {
-                do {
-                    $adminRelationshipCollection = Invoke-RestMethod -Method "Get" -Uri $uri -Headers $headers
-                    foreach ($adminRelationshipObject in $adminRelationshipCollection.value) {
-                        $adminRelationship = @{
-                            "@" = $adminRelationshipObject
-                            accessAssignments = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/accessAssignments" -Headers $headers
-                            operations = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/operations" -Headers $headers
-                            requests = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/requests" -Headers $headers
-                        }
-                        $allAdminRelationships += $adminRelationship
-                    }
-                    $uri = $adminRelationshipCollection."@odata.nextLink"
-                } while ($uri)
+            $adminRelationship = @{
+                "@" = $adminRelationshipObject
+                AccessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments"
+                Operations = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/operations"
+                Requests = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/requests"
             }
-            else {
-                do {
-                    $adminRelationshipCollection = Invoke-RestMethod -Method "Get" -Uri $uri -Headers $headers
-                    $allAdminRelationships += $adminRelationshipCollection.value
-                    $uri = $adminRelationshipCollection."@odata.nextLink"
-                } while ($uri)
-            }
-
-            return $allAdminRelationships
         }
         else {
-            if ($extendedInformation)
-            {
-                $adminRelationship = @{
-                    "@" = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
-                    AccessAssignments = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments" -Headers $headers
-                    Operations = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/operations" -Headers $headers
-                    Requests = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/requests" -Headers $headers
-                }
-            }
-            else {
-                $adminRelationship = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
-            }
-            
-            return $adminRelationship
+            $adminRelationship = $adminRelationshipObject
         }
-    }
-    catch {
-        throw "Authorization failed or bad request.`nException: $($_.Exception.Message)"
+        
+        return $adminRelationship
     }
 }
