@@ -1,7 +1,7 @@
 function Get-CMPCAdminRelationship {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)] [hashtable]$accessToken,
+        [Parameter(Mandatory = $true)] [securestring]$accessToken,
         [Parameter(Mandatory = $false)] [string]$adminRelationshipId,
         [Parameter(Mandatory = $false)] [switch]$extendedInformation
     )
@@ -12,27 +12,27 @@ function Get-CMPCAdminRelationship {
 
         if ($extendedInformation)
         {
-            $adminRelationshipCollection = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri $uri
+            $adminRelationshipCollection = Get-AllGraphAPIResponses -accessToken $accessToken -uri $uri
 
             foreach ($adminRelationshipObject in $adminRelationshipCollection) {
                 $adminRelationship = @{
                     "@" = $adminRelationshipObject
-                    accessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/accessAssignments"
-                    operations = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/operations"
-                    requests = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/requests"
+                    accessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/accessAssignments"
+                    operations = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/operations"
+                    requests = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipObject.id)/requests"
                 }
                 $allAdminRelationships += $adminRelationship
             }
         }
         else {
-            $allAdminRelationships = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri $uri
+            $allAdminRelationships = Get-AllGraphAPIResponses -accessToken $accessToken -uri $uri
         }
 
         return $allAdminRelationships
     }
     else {
         $headers = @{
-            Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken.DelegatedAdminRelationship)"
+            Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
         }
         $adminRelationshipObject = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
         $adminRelationshipObject.PSObject.Properties.Remove("@odata.context")
@@ -41,9 +41,9 @@ function Get-CMPCAdminRelationship {
         {
             $adminRelationship = @{
                 "@" = $adminRelationshipObject
-                AccessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments"
-                Operations = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/operations"
-                Requests = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/requests"
+                AccessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments"
+                Operations = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/operations"
+                Requests = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/requests"
             }
         }
         else {

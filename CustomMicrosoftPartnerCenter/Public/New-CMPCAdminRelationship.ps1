@@ -1,7 +1,7 @@
 function New-CMPCAdminRelationship {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
     param (
-        [Parameter(Mandatory = $true)] [hashtable]$accessToken,
+        [Parameter(Mandatory = $true)] [securestring]$accessToken,
         [Parameter(Mandatory = $false)] [string]$displayName,
         [Parameter(Mandatory = $false)] [string]$duration,
         [Parameter(Mandatory = $false)] [array]$unifiedRoles,
@@ -56,7 +56,7 @@ function New-CMPCAdminRelationship {
         }
         
         if ($autoExtendDuration) {
-            $body["autoExtendDuration"] = $autoExtendDuration
+            $body.autoExtendDuration = $autoExtendDuration
         }
     }
     catch {
@@ -65,7 +65,7 @@ function New-CMPCAdminRelationship {
 
     try {
         $headers = @{
-            Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken.DelegatedAdminRelationship)"
+            Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
         }
     
         # Body is defined earlier

@@ -1,18 +1,17 @@
 function Remove-CMPCAdminRelationshipAccessAssignment {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)] [hashtable]$accessToken,
+        [Parameter(Mandatory = $true)] [securestring]$accessToken,
         [Parameter(Mandatory = $true)] [string]$adminRelationshipId,
         [Parameter(Mandatory = $true)] [string]$securityGroup
     )
     #ferdig, må testes
     $headers = @{
-        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken.DelegatedAdminRelationship)"
+        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
     }
-
-    $allAccessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken.DelegatedAdminRelationship -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments?`$select=@odata.etag,id,status,accessContainer"
+    $allAccessAssignments = Get-AllGraphAPIResponses -accessToken $accessToken -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments?`$select=@odata.etag,id,status,accessContainer"
     $accessAssignment = $allAccessAssignments | Where-Object {$_.status -eq "active"} | Where-Object {$_.accessContainer.accessContainerId -eq $securityGroup}
-    $headers["If-Match"] = $accessAssignment."@odata.etag"
+    $headers."If-Match" = $accessAssignment."@odata.etag"
 
     switch ($accessAssignment.status)
     {
@@ -43,11 +42,11 @@ function Remove-CMPCAdminRelationshipAccessAssignment {
     )
     
     $headers = @{
-        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken.DelegatedAdminRelationship)"
+        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
     }
 
     $accessAssignment = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments/$($accessAssignmentId)?`$select=@odata.etag" -Headers $headers
-    $headers["If-Match"] = $accessAssignment."@odata.etag"
+    $headers."If-Match" = $accessAssignment."@odata.etag"
 
     switch ($accessAssignment.status)
     {
