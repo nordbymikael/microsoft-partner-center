@@ -7,9 +7,9 @@ function New-CMPCAdminRelationshipAccessAssignment {
         [Parameter(Mandatory = $false)] [array]$unifiedRoles,
         [Parameter(Mandatory = $false)] [switch]$usePredefinedUnifiedRoles
     )
-
+    
     $headers = @{
-        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
+        Authorization = "Bearer $($authTokenManager.GetValidToken())"
     }
     $adminRelationship = Invoke-WebRequest -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)?`$select=status" -Headers $headers
     

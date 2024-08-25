@@ -1,7 +1,6 @@
 function New-CMPCAdminRelationship {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
     param (
-        [Parameter(Mandatory = $true)] [securestring]$accessToken,
         [Parameter(Mandatory = $false)] [string]$displayName,
         [Parameter(Mandatory = $false)] [string]$duration,
         [Parameter(Mandatory = $false)] [array]$unifiedRoles,
@@ -9,7 +8,7 @@ function New-CMPCAdminRelationship {
         [Parameter(Mandatory = $false)] [switch]$usePredefinedUnifiedRoles,
         [Parameter(Mandatory = $false)] [switch]$usePredefinedVariables
     )
-    
+
     if ($usePredefinedVariables)
     {
         if ($CMPC_AdminRelationshipDisplayName)
@@ -38,6 +37,8 @@ function New-CMPCAdminRelationship {
     {
         throw "The unifiedRoles and usePredefinedUnifiedRoles parameters cannot be used together."
     }
+
+    $accessToken = $authTokenManager.GetValidToken()
 
     try {
         $unifiedRolesArray = if ($usePredefinedUnifiedRoles) {

@@ -6,7 +6,7 @@ function Remove-CMPCAdminRelationship {
     )
     
     $headers = @{
-        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
+        Authorization = "Bearer $($authTokenManager.GetValidToken())"
     }
     $adminRelationship = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
 

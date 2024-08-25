@@ -1,10 +1,11 @@
 function Get-CMPCAdminCustomer {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)] [securestring]$accessToken,
         [Parameter(Mandatory = $false)] [string]$delegatedAdminCustomerId,
         [Parameter(Mandatory = $false)] [switch]$extendedInformation
     )
+
+    $accessToken = $authTokenManager.GetValidToken()
 
     if (!$delegatedAdminCustomerId)
     {

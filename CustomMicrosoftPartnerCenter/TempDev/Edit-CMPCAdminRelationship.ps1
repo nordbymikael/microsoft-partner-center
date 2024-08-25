@@ -1,7 +1,7 @@
 function Edit-CMPCAdminRelationship {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)] [securestring]$accessToken,
+        [Parameter(Mandatory = $true)] [array]$adminRelationshipId,
         [Parameter(Mandatory = $false)] [array]$unifiedRoles,
         [Parameter(Mandatory = $false)] [string]$autoExtendDuration,
         [Parameter(Mandatory = $false)] [string]$customerTenantId,
@@ -51,7 +51,7 @@ function Edit-CMPCAdminRelationship {
     }
 
     $headers = @{
-        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
+        Authorization = "Bearer $($authTokenManager.GetValidToken())"
     }
     $adminRelationship = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
 
@@ -70,7 +70,7 @@ function Edit-CMPCAdminRelationship {
             return "Successfully changed the admin relationship."
         }
         "created" {
-            throw "Cannot edit the admin relationship because the admin relationship has not yet been locked for approval."
+            
         }
         "terminationRequested" {
             throw "Cannot edit the admin relationship because the admin relationship is scheduled for termination."

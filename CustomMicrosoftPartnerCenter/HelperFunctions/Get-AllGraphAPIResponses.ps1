@@ -1,13 +1,12 @@
 function Get-AllGraphAPIResponses {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)] [securestring]$accessToken,
         [Parameter(Mandatory = $true)] [string]$uri
     )
     
     $responseCollection = @()
     $headers = @{
-        Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
+        Authorization = "Bearer $($authTokenManager.GetValidToken())"
     }
 
     do {
