@@ -1,7 +1,7 @@
 # Provide your Microsoft Tenant ID
 $CMPC_TenantId = ""
 
-# Provide your Client ID
+# Provide your Application ID (Client ID)
 $CMPC_ClientId = ""
 
 # Provide your Client secret

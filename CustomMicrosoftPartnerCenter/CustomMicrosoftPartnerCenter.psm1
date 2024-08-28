@@ -11,7 +11,7 @@ Get-ChildItem -Path "$($PSScriptRoot)\HelperFunctions" -Filter "*.ps1" | ForEach
 }
 
 # Import variables
-Get-ChildItem -Path "$($PSScriptRoot)\Variables" -Filter "*.ps1" | ForEach-Object {
+Get-ChildItem -Path "$($PSScriptRoot)\Configuration" -Filter "*.ps1" | ForEach-Object {
     . $_.FullName
 }
 Get-Variable -Scope Script | Where-Object {$_.Name -notlike "PSScriptRoot" -and $_.Name -notlike "MyInvocation"} | ForEach-Object {

@@ -1,7 +1,8 @@
-$tenantId = ""
-$clientId = ""
-$clientSecret = ""
-$adminRelationshipId = ""
+[System.String]$tenantId = ""
+[System.String]$clientId = ""
+[System.String]$clientSecret = ""
+
+[System.String]$adminRelationshipId = ""
 
 ####################################################################################################
 # Define the variables above and run the script
@@ -28,3 +29,5 @@ foreach ($accessAssignment in $requiredAccessAssignments)
 }
 
 Write-Host -Object $missingAccessAssignments
+
+Disconnect-CMPC

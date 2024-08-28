@@ -2,7 +2,7 @@ function Get-AllGraphAPIResponses {
     [CmdletBinding()]
 
     param (
-        [Parameter(Mandatory = $true)] [string]$uri
+        [Parameter(Mandatory = $true)] [System.String]$Uri
     )
     
     begin
@@ -17,11 +17,12 @@ function Get-AllGraphAPIResponses {
 
     process
     {
-        do {
-            $response = Invoke-RestMethod -Method "Get" -Uri $uri -Headers $headers
+        while ($Uri)
+        {
+            $response = Invoke-RestMethod -Method "Get" -Uri $Uri -Headers $headers
             $responseCollection += $response.value
-            $uri = $response."@odata.nextLink"
-        } while ($uri)
+            $Uri = $response."@odata.nextLink"
+        }
     }
     
     end

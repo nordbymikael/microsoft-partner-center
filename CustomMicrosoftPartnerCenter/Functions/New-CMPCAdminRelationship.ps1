@@ -1,4 +1,47 @@
 function New-CMPCAdminRelationship {
+    #REQUIRES -Version 4.0
+    #REQUIRES -Modules Microsoft.PowerShell.Utility
+
+    <#
+    .SYNOPSIS
+    Easy description of the function
+
+    .DESCRIPTION
+    Advanced description of the function
+
+    .PARAMETER parametername
+    Description of the parameter
+
+    .PARAMETER parametername
+    Description of the parameter
+
+    .PARAMETER parametername
+    Description of the parameter
+
+    .PARAMETER parametername
+    Description of the parameter
+
+    .INPUTS
+    Inputs of the function
+
+    .OUTPUTS
+    Outputs of the function
+
+    .LINK
+    Online version: url
+
+    .NOTES
+    Advanced explanation of the code flow
+
+    .EXAMPLE
+    Cmdlet -parameter "parameter"
+    Text
+
+    .EXAMPLE
+    Cmdlet -parameter "parameter"
+    Text
+    #>
+
     [CmdletBinding(
         ConfirmImpact = "High",
         DefaultParameterSetName = "Direct",

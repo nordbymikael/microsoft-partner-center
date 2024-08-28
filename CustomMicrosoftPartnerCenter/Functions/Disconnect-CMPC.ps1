@@ -1,5 +1,6 @@
 function Disconnect-CMPC {
     #REQUIRES -Version 4.0
+    #REQUIRES -Modules Microsoft.PowerShell.Utility
 
     <#
     .SYNOPSIS
@@ -31,12 +32,13 @@ function Disconnect-CMPC {
 
     [CmdletBinding(
         ConfirmImpact = "Medium",
-        DefaultParameterSetName = "",
+        DefaultParameterSetName = "Default",
         HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#disconnect-cmpc",
         SupportsPaging = $false,
         SupportsShouldProcess = $true,
         PositionalBinding = $true
     )]
+
     param ()
 
     begin

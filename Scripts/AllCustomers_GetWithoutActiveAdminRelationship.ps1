@@ -1,6 +1,6 @@
-$tenantId = ""
-$clientId = ""
-$clientSecret = ""
+[System.String]$tenantId = ""
+[System.String]$clientId = ""
+[System.String]$clientSecret = ""
 
 ####################################################################################################
 # Define the variables above and run the script
@@ -34,3 +34,5 @@ foreach ($partnerCustomer in $allPartnerCustomers)
 }
 
 Write-Host -Object $missingAdminCustomers
+
+Disconnect-CMPC
