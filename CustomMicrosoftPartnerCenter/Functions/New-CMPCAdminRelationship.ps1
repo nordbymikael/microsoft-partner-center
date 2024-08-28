@@ -1,13 +1,50 @@
 function New-CMPCAdminRelationship {
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
+    [CmdletBinding(
+        ConfirmImpact = "High",
+        DefaultParameterSetName = "Direct",
+        HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#new-cmpcadminrelationship",
+        SupportsPaging = $false,
+        SupportsShouldProcess = $true,
+        PositionalBinding = $true
+    )]
+
     param (
-        [Parameter(Mandatory = $false)] [string]$displayName,
-        [Parameter(Mandatory = $false)] [string]$duration,
-        [Parameter(Mandatory = $false)] [array]$unifiedRoles,
-        [Parameter(Mandatory = $false)] [string]$autoExtendDuration,
-        [Parameter(Mandatory = $false)] [switch]$usePredefinedUnifiedRoles,
-        [Parameter(Mandatory = $false)] [switch]$usePredefinedVariables
+        [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
+        [ValidateCount(1, 50)]
+        [System.String]$displayName,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
+        [System.String]$duration,
+        
+        [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
+        [ValidateCount(1, 72)]
+        [System.Object[]]$unifiedRoles,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
+        [System.String]$autoExtendDuration,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "ConfigurationFile")]
+        [System.Management.Automation.SwitchParameter]$usePredefinedUnifiedRoles,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "ConfigurationFile")]
+        [System.Management.Automation.SwitchParameter]$usePredefinedVariables
     )
+
+    begin
+    {
+        Confirm-AccessTokenExistence
+    }
+
+    process
+    {
+        
+    }
+
+    end
+    {
+    
+    }
+    
 
     if ($usePredefinedVariables)
     {
@@ -38,8 +75,6 @@ function New-CMPCAdminRelationship {
         throw "The unifiedRoles and usePredefinedUnifiedRoles parameters cannot be used together."
     }
 
-    $accessToken = $authTokenManager.GetValidToken()
-
     try {
         $unifiedRolesArray = if ($usePredefinedUnifiedRoles) {
             ($CMPC_AdminRelationshipUnifiedRoles | ConvertFrom-Json) | ForEach-Object { @{ roleDefinitionId = $_.roleDefinitionId } }
@@ -66,7 +101,7 @@ function New-CMPCAdminRelationship {
 
     try {
         $headers = @{
-            Authorization = "Bearer $(Unprotect-SecureString -secureString $accessToken)"
+            Authorization = "Bearer $($authTokenManager.GetValidToken())"
         }
     
         # Body is defined earlier
@@ -87,4 +122,6 @@ function New-CMPCAdminRelationship {
     catch {
         throw "Authorization failed or bad request.`nException: $($_.Exception.Message)"
     }
+
+
 }

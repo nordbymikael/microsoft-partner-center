@@ -1,12 +1,36 @@
 function New-CMPCAdminRelationshipAccessAssignment {
-    [CmdletBinding()]
+    [CmdletBinding(
+        ConfirmImpact = "High",
+        HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#new-cmpcadminrelationshipaccessassignment",
+        SupportsPaging = $false,
+        SupportsShouldProcess = $true,
+        PositionalBinding = $true
+    )]
+
     param (
-        [Parameter(Mandatory = $true)] [securestring]$accessToken,
-        [Parameter(Mandatory = $true)] [string]$adminRelationshipId,
-        [Parameter(Mandatory = $false)] [string]$securityGroup,
-        [Parameter(Mandatory = $false)] [array]$unifiedRoles,
-        [Parameter(Mandatory = $false)] [switch]$usePredefinedUnifiedRoles
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+        [System.String]$adminRelationshipId,
+        
+        [Parameter(Mandatory = $false)] [System.String]$securityGroup,
+        [Parameter(Mandatory = $false)] [ValidateCount(1, 72)] [System.Object[]]$unifiedRoles,
+        [Parameter(Mandatory = $false)] [System.Management.Automation.SwitchParameter]$usePredefinedUnifiedRoles
     )
+
+    begin
+    {
+        Confirm-AccessTokenExistence
+    }
+
+    process
+    {
+
+    }
+
+    end
+    {
+
+    }
     
     $headers = @{
         Authorization = "Bearer $($authTokenManager.GetValidToken())"

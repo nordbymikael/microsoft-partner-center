@@ -1,16 +1,38 @@
 function Edit-CMPCAdminRelationshipAccessAssignment {
-    [CmdletBinding()]
+    [CmdletBinding(
+        ConfirmImpact = "High",
+        HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#edit-cmpcadminrelationshipaccessassignment",
+        SupportsPaging = $false,
+        SupportsShouldProcess = $true,
+        PositionalBinding = $true
+    )]
+
     param (
-        [Parameter(Mandatory = $true)] [string]$adminRelationshipId,
-        [Parameter(Mandatory = $true)] [string]$securityGroup,
-        [Parameter(Mandatory = $true)] [array]$unifiedRoles
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)] [System.String]$adminRelationshipId,
+        [Parameter(Mandatory = $true)] [System.String]$securityGroupId,
+        [Parameter(Mandatory = $true)] [ValidateCount(1, 72)] [System.Object[]]$unifiedRoles
     )
-    #ferdig, må testes
+
+    begin
+    {
+        Confirm-AccessTokenExistence
+    }
+
+    process
+    {
+
+    }
+
+    end
+    {
+
+    }
+    
     $headers = @{
         Authorization = "Bearer $($authTokenManager.GetValidToken())"
     }
-    $allAccessAssignments = Get-AllGraphAPIResponses -accessToken $authTokenManager.GetValidToken() -uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments?`$select=@odata.etag,id,status,accessContainer"
-    $accessAssignment = $allAccessAssignments | Where-Object {$_.status -eq "active"} | Where-Object {$_.accessContainer.accessContainerId -eq $securityGroup}
+    $allAccessAssignments = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments?`$select=@odata.etag,id,status,accessContainer"
+    $accessAssignment = $allAccessAssignments | Where-Object {$_.status -eq "active"} | Where-Object {$_.accessContainer.accessContainerId -eq $securityGroupId}
     $headers."If-Match" = $accessAssignment."@odata.etag"
     $body = @{
         accessDetails = @{
@@ -38,9 +60,9 @@ function Edit-CMPCAdminRelationshipAccessAssignment {
     <#
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)] [string]$adminRelationshipId,
-        [Parameter(Mandatory = $true)] [string]$accessAssignmentId,
-        [Parameter(Mandatory = $true)] [array]$unifiedRoles
+        [Parameter(Mandatory = $true)] [System.String]$adminRelationshipId,
+        [Parameter(Mandatory = $true)] [System.String]$accessAssignmentId,
+        [Parameter(Mandatory = $true)] [System.Object[]]$unifiedRoles
     )
     
     $headers = @{

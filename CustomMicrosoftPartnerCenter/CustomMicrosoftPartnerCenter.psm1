@@ -1,5 +1,5 @@
 # Import functions from public folder
-Get-ChildItem -Path "$($PSScriptRoot)\Public" -Filter "*.ps1" | ForEach-Object {
+Get-ChildItem -Path "$($PSScriptRoot)\Functions" -Filter "*.ps1" | ForEach-Object {
     . $_.FullName
     Export-ModuleMember -Function $_.BaseName
 }
@@ -7,7 +7,7 @@ Get-ChildItem -Path "$($PSScriptRoot)\Public" -Filter "*.ps1" | ForEach-Object {
 # Import functions from helper functions folder
 Get-ChildItem -Path "$($PSScriptRoot)\HelperFunctions" -Filter "*.ps1" | ForEach-Object {
     . $_.FullName
-    Export-ModuleMember -Function $_.BaseName
+    # No need to export the helper functions because they are not used by the end user
 }
 
 # Import variables

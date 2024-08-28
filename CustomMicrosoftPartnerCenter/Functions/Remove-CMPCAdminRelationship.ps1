@@ -1,9 +1,32 @@
 function Remove-CMPCAdminRelationship {
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
+    [CmdletBinding(
+        ConfirmImpact = "High",
+        HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#remove-cmpcadminrelationship",
+        SupportsPaging = $false,
+        SupportsShouldProcess = $true,
+        PositionalBinding = $true
+    )]
+    
     param (
-        [Parameter(Mandatory = $true)] [securestring]$accessToken,
-        [Parameter(Mandatory = $true)] [string]$adminRelationshipId
+        [Parameter(Mandatory = $true)]
+        [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+        [System.String]$adminRelationshipId
     )
+
+    begin
+    {
+        Confirm-AccessTokenExistence
+    }
+
+    process
+    {
+
+    }
+
+    end
+    {
+
+    }
     
     $headers = @{
         Authorization = "Bearer $($authTokenManager.GetValidToken())"

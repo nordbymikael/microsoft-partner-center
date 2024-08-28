@@ -1,6 +1,10 @@
-$tenantId = "72465188-6db8-4510-ba33-40392d5db724"
-$clientId = "56fe70e2-69c1-41a3-80b9-66912b0a4a76"
-$clientSecret = "GZk8Q~RaZvYbdQLUfaejuqE40vQc8aODbi7qwcvh"
+$tenantId = ""
+$clientId = ""
+$clientSecret = ""
+
+####################################################################################################
+# Define the variables above and run the script
+####################################################################################################
 
 #Install-Module PartnerCenter
 Import-Module PartnerCenter
@@ -29,4 +33,4 @@ foreach ($partnerCustomer in $allPartnerCustomers)
     }
 }
 
-Write-Output -InputObject $missingAdminCustomers
+Write-Host -Object $missingAdminCustomers
