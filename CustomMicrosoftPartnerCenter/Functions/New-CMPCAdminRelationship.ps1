@@ -1,3 +1,6 @@
+# Fix error when specifying auto extend with global administrator role (not supported)
+# Fix how to use a customer with the function
+
 function New-CMPCAdminRelationship {
     #REQUIRES -Version 4.0
     #REQUIRES -Modules Microsoft.PowerShell.Utility
@@ -42,10 +45,12 @@ function New-CMPCAdminRelationship {
     This parameter does not support to create the relationship for a specific customer.
 
     .INPUTS
-    Inputs of the function
+    The inputs of the function are the display name of the admin relationship, the duration of the admin relationship and the unified roles associated with the admin relationship.
+    Optionally, you can specify the auto extend duration and the customer for whom you want to reserve the admin relationship.
 
     .OUTPUTS
-    Outputs of the function
+    The output of the function is either an error with a description of what you have to change, or a successful response in a hashtable.
+    The hashtable contains an URL that you can send to the customer's Global Administrator for approval, and the general admin relationship information.
 
     .LINK
     Online version: https://github.com/nordbymikael/microsoft-partner-center#new-cmpcadminrelationship
@@ -79,7 +84,7 @@ function New-CMPCAdminRelationship {
         [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
         [ValidatePattern("^\d+$")]
         [ValidateScript({
-            if ([int]$_ -ge 1 -and [int]$_ -le 720) {
+            if ([System.Int32]$_ -ge 1 -and [System.Int32]$_ -le 720) {
                 $true
             } else {
                 throw "The value for Duration must be a number between 1 and 720."
@@ -181,7 +186,7 @@ function New-CMPCAdminRelationship {
                 $Body.autoExtendDuration = "P$($AutoExtendDuration)D"
             }
             if ($Customer)
-            { #Not done, not properly formatted
+            {
                 $Body.customer = @{}
                 $Body.customer.tenantId = $Customer
             }
