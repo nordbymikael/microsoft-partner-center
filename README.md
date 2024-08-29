@@ -1,5 +1,50 @@
 # Documentation
 
+## Good to know about granular delegated admin relationships (GDAP)
+
+### General
+- A "GDAP relationship" is also known as an "admin relationship".
+- A partner customer is a customer with whom a reseller relationship has been established
+- A delegated admin customer is a customer with whom an admin relationship has been established
+- Therefore, a partner customer is not always a delegated admin customer, and a delegated admin customer is not always a partner customer
+
+### About admin relationships
+- For the creation of an admin relationship, only a displayname, duration and minimum one role is required
+- Every admin relationship requires a unique name and it cannot exceed 50 characters and few special characters are supported
+- The duration is in the ISO 8601 format and it must be a value between P1D and P2Y (or P720D) inclusive
+- The auto extend duration is in the backend defined in the ISO 8601 format
+- If the auto extend duration is specified, the admin relationship will be automatically renewed
+- Supported valued for auto extend duration are P0D, PT0S and P180D
+- The customer associated with an admin relationship can either be defined at the admin relationship creation, or automatically when the admin relationship is accepted by a customer
+
+### About access assignments
+- Usually, the user does not have any use for the access assignment ID because it is primarily used in the backend by Microsoft
+- When an access assignment is created for a security group on an admin relationship, the access assignment ID will be generated with a random globally unique identifier (GUID)
+- The historic entry of that specific access assignment will be uniquely identified by the access assignment ID
+
+- The security group can only have one active access assignment at a time
+- Therefore, the creation of a new access assignment on a security group will trigger a 409 error if an active access assignment on the same security group already exists
+- To edit an active access assignment, use the Edit-CMPCAdminRelationshipAccessAssignment function in this module
+
+
+### About requests
+- A lockForApproval request is required for the relationship to be accepted
+- Without a lockForApproval request, the relationship has the created status and can be modified, meanwhile only the auto extend duration and the presence of the Global Administrator role can be changed after the lockForApproval
+- A request on an admin relationship is either related to a lockForApproval action or a termination action
+- This module does automatically lock an admin relationship for approval when the admin relationship is created
+
+### About operations
+- An operation is often refered to as a long-running operation
+- Operations include the removal of a Global Administrator role from an admin relationship
+
+### About the API endpoints
+- API requests for admin relationships and delegated admin customers are associated with the following Microsoft Graph API endpoint: https://graph.microsoft.com/v1.0/tenantRelationships
+- The Graph API endpoint requires the "DelegatedAdminRelationship.ReadWrite.All" or "DelegatedAdminRelationship.Read.All" API permissions
+- Microsoft uses a backend API endpoint associated with Azure Traffic Manager for GDAP: https://traf-pcsvcadmin-prod.trafficmanager.net/CustomerServiceAdminApi/Web/v1/granularAdminRelationships
+- The Azure Traffic Manager endpoint requires the "PartnerCustomerDelegatedAdministration.ReadWrite.All" or "PartnerCustomerDelegatedAdministration.Read.All" API permissions
+- The API requests for the Graph API endpoint has a limited response amount to 300 responses, and the @odata.nextLink can be used to get the next 300 responses
+- $top og $expand are not supported on the https://graph.microsoft.com/v1.0/tenantRelationships endpoint, only $select is supported because it is default for the Graph API
+
 ## Preparation
 
 ### Dependencies on other modules
@@ -333,16 +378,17 @@ https://github.com/microsoft/Partner-Center-PowerShell
 ## Patch notes
 
 ### version 2.0.0
-Release date: 02.08.2024 (dd.mm.yyyy)
+Release date: 01.09.2024 (dd.mm.yyyy)
 Release notes:
-- The module was rewritten from scratch to remove the company's ownership of the product
-- The module is now for both personal and corporative use, but all organizations require a formal consent from the module author to use the the module for any purposes
+- The module was rewritten from scratch to remove the company's ownership of the SDK product
+- The module is now for both personal and corporative use, but all organizations are allowed to use this module
+- Note that the module is still copyright
 - The module now provides customization options using module variables
-- Rework of the authentication process, which removed the dependency on the Microsoft Authentication Library (MSAL) module
-- Added new cmdlets for GDAP removal, GDAP access assignment removal and to retrieve all customers in Microsoft Partner Center without the need of any additional PowerShell modules
-- By reverse engineering, a new cmdlet to terminate accepted admin relationships was created (this capability is not yet provided by the Microsoft.Graph.Identity.Partner module)
+- Rework of the authentication process, which removed the dependency on the Microsoft Authentication Library (MSAL.PS) module
+- Added new cmdlets for GDAP removal, GDAP access assignment removal and to retrieve all customers in Microsoft Partner Center without the need of any additional Powershell modules and backend API endpoints
 - Added new cmdlets for management of admin customers (partner customers with at least one associated admin relationship that has the active status)
 - A new documentation for the updated module was written
+- Powershell best practises were applied to generate the m
 
 ### version 1.0.0
 Release date: 01.03.2024 (dd.mm.yyyy)

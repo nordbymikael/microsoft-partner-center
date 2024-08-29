@@ -1,6 +1,6 @@
-Import-Module "$($env:USERPROFILE)\private-repositories\microsoft-partner-center\CustomMicrosoftPartnerCenter\CustomMicrosoftPartnerCenter.psm1"
 Remove-Module CustomMicrosoftPartnerCenter
 
+Import-Module "$($env:USERPROFILE)\private-repositories\microsoft-partner-center\CustomMicrosoftPartnerCenter\CustomMicrosoftPartnerCenter.psm1"
 
 Import-Module -Name "C:\Users\nordb\Repositories\microsoft-partner-center\CustomMicrosoftPartnerCenter"
 

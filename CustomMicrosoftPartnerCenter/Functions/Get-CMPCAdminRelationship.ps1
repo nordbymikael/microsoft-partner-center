@@ -7,44 +7,55 @@ function Get-CMPCAdminRelationship {
     This function retrieves information about an admin relationship.
 
     .DESCRIPTION
-    Advanced description of the function
+    This function retrieves either basic or detailed information about an admin relationship.
+    The detailed information retrieves the access assignment information, requests information and operations information.
 
-    .PARAMETER parametername
-    Description of the parameter
+    .PARAMETER AdminRelationshipId
+    This parameter is optional, and information about all the specific admin relationship is retrieved if specified. If the parameter is absent, information about all the admin relationships is retrieved.
 
-    .PARAMETER parametername
-    Description of the parameter
-
-    .PARAMETER parametername
-    Description of the parameter
-
-    .PARAMETER parametername
-    Description of the parameter
+    .PARAMETER ExtendedInformation
+    This parameter is a switch parameter and decides whether the extended infromation should be retrieved.
 
     .INPUTS
-    Inputs of the function
+    The function inputs are all optinal, and are an admin relationship ID and the option to get extended information about each retrieved admin relationship.
 
     .OUTPUTS
-    Outputs of the function
+    The function outputs either general information about the admin relationship or every bit of information associated with the admin relationship including the general information, access assignemnts, requests and operations.
+    
+    If information about a single admin relationship was requested, the output will be a hashtable.
+    If information about all the admin relationships was requested, the output will be an array of hashtables.
 
     .LINK
-    Online version: url
+    Online version: https://github.com/nordbymikael/microsoft-partner-center#get-cmpcadminrelationship
 
     .NOTES
-    Advanced explanation of the code flow
+    This function first determines whether the admin relationship ID is specified or not.
+    If it is not specified, information about all the admin relationships is retrieved.
+    The ExtendedInformation switch parameter determines whether extended information should be retrieved.
+
+    If the previous condition for the admin relationship parameter was not met, the admin relationship is definetly specified and information about the admin relationship is returned with the same logic.
 
     .EXAMPLE
-    Cmdlet -parameter "parameter"
-    Text
+    Get-CMPCAdminRelationship
+    This example shows how to retrieve basic information about all the admin relationships.
 
     .EXAMPLE
-    Cmdlet -parameter "parameter"
-    Text
+    Get-CMPCAdminRelationship -ExtendedInformation
+    This example shows how to retrieve all possible information about all the admin relationships.
+    Are there many admin relationships, this command will eventually end successfully because the access token is always updated in the background, but it may take many hours time to retrieve all the possible information.
+
+    .EXAMPLE
+    Get-CMPCAdminRelationship -AdminRelationshipId "xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx-xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx"
+    This example shows how to retrieve basic information about a specific admin relationship.
+
+    .EXAMPLE
+    Get-CMPCAdminRelationship -AdminRelationshipId "xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx-xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx" -ExtendedInformation
+    This example shows how to retrieve all possible information about a specific admin relationship.
     #>
 
     [CmdletBinding(
         ConfirmImpact = "Medium",
-        DefaultParameterSetName = "Default",
+        DefaultParameterSetName = "AllAdminRelationships",
         HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#get-cmpcadminrelationship",
         SupportsPaging = $false,
         SupportsShouldProcess = $true,
@@ -52,12 +63,13 @@ function Get-CMPCAdminRelationship {
     )]
 
     param (
-        [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+        [Parameter(Mandatory = $true, ParameterSetName = "AdminRelationship")]
         [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
-        [System.String]$adminRelationshipId,
+        [System.String]$AdminRelationshipId,
         
-        [Parameter(Mandatory = $false, ParameterSetName = "Default")]
-        [System.Management.Automation.SwitchParameter]$extendedInformation
+        [Parameter(Mandatory = $false, ParameterSetName = "AdminRelationship")]
+        [Parameter(Mandatory = $false, ParameterSetName = "AllAdminRelationships")]
+        [System.Management.Automation.SwitchParameter]$ExtendedInformation
     )
 
     begin
@@ -67,11 +79,11 @@ function Get-CMPCAdminRelationship {
 
     process
     {
-        if (!$adminRelationshipId)
+        if (!$AdminRelationshipId)
         {
             $adminRelationshipCollection = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships"
     
-            if ($extendedInformation)
+            if ($ExtendedInformation)
             {
                 $allAdminRelationships = @()
     
@@ -94,16 +106,16 @@ function Get-CMPCAdminRelationship {
             $headers = @{
                 Authorization = "Bearer $($authTokenManager.GetValidToken())"
             }
-            $adminRelationshipObject = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
+            $adminRelationshipObject = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($AdminRelationshipId)" -Headers $headers
             $adminRelationshipObject.PSObject.Properties.Remove("@odata.context")
     
-            if ($extendedInformation)
+            if ($ExtendedInformation)
             {
                 $adminRelationship = @{
                     "@" = $adminRelationshipObject
-                    AccessAssignments = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/accessAssignments"
-                    Operations = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/operations"
-                    Requests = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)/requests"
+                    AccessAssignments = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($AdminRelationshipId)/accessAssignments"
+                    Operations = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($AdminRelationshipId)/operations"
+                    Requests = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($AdminRelationshipId)/requests"
                 }
     
                 return $adminRelationship

@@ -12,14 +12,7 @@
 Import-Module CustomMicrosoftPartnerCenter
 Connect-CMPC -tenantId $tenantId -clientId $clientId -clientSecret $clientSecret
 
-if ($extendedInformation)
-{
-    $delegatedAdminCustomerInformation = Get-CMPCDelegatedAdminCustomer -TenantId $delegatedAdminCustomerTenantId -ExtendedInformation
-}
-else
-{
-    $delegatedAdminCustomerInformation = Get-CMPCDelegatedAdminCustomer -TenantId $delegatedAdminCustomerTenantId
-}
+$delegatedAdminCustomerInformation = Get-CMPCDelegatedAdminCustomer -CustomerTenantId $delegatedAdminCustomerTenantId -ExtendedInformation:$extendedInformation
 
 Write-Host -Object $delegatedAdminCustomerInformation
 
