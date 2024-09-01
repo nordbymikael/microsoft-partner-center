@@ -70,6 +70,9 @@ function Get-CMPCAdminRelationshipAccessAssignment {
         [Parameter(Mandatory = $true, ParameterSetName = "SecurityGroupId")]
         [Parameter(Mandatory = $true, ParameterSetName = "AccessAssignmentId")]
         [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+        [ValidateScript({
+            Confirm-AdminRelationshipExistence -AdminRelationshipId $_
+        })]
         [System.String]$AdminRelationshipId,
 
         [Parameter(Mandatory = $true, ParameterSetName = "SecurityGroupId")]

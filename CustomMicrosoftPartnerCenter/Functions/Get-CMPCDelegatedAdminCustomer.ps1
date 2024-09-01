@@ -63,6 +63,9 @@ function Get-CMPCDelegatedAdminCustomer {
     param (
         [Parameter(Mandatory = $true, ParameterSetName = "AdminCustomer")]
         [ValidatePattern("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+        [ValidateScript({
+            Confirm-AdminCustomerExistence -CustomerTenantId $_
+        })]
         [System.String]$CustomerTenantId,
         
         [Parameter(Mandatory = $false, ParameterSetName = "AdminCustomer")]

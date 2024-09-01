@@ -1,7 +1,14 @@
 # Import functions from public folder
 Get-ChildItem -Path "$($PSScriptRoot)\Functions" -Filter "*.ps1" | ForEach-Object {
     . $_.FullName
-    Export-ModuleMember -Function $_.BaseName
+
+    try {
+        $ExportFunction = $_
+        Export-ModuleMember -Function $ExportFunction.BaseName
+    }
+    catch {
+        Write-Warning -Message "Failed to import function `$$($ExportFunction)"
+    }
 }
 
 # Import functions from helper functions folder
@@ -15,7 +22,13 @@ Get-ChildItem -Path "$($PSScriptRoot)\Configuration" -Filter "*.ps1" | ForEach-O
     . $_.FullName
 }
 Get-Variable -Scope Script | Where-Object {$_.Name -notlike "PSScriptRoot" -and $_.Name -notlike "MyInvocation"} | ForEach-Object {
-    Export-ModuleMember -Variable $_.Name
+    try {
+        $ExportVariable = $_
+        Export-ModuleMember -Variable $ExportVariable.Name
+    }
+    catch {
+        Write-Warning -Message "Failed to import variable `$$($ExportVariable)"
+    }
 }
 
 $CMPC_SupportedRoles = @(
@@ -93,5 +106,3 @@ $CMPC_SupportedRoles = @(
     "9c6df0f2-1e7c-4dc3-b195-66dfbd24aa8f", # Attack Payload Author
     "c430b396-e693-46cc-96f3-db01bf8bb62a" # Attack Simulation Administrator
 )
-
-#Export-ModuleMember -Variable CMPC_SupportedRoles

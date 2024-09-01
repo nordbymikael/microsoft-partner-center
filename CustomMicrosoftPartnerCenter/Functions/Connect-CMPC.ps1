@@ -164,8 +164,8 @@ function Connect-CMPC {
                     $this.RequestToken($body)
                 }
 
-                [void]ValidateTokenPermissions([string]$token) {
-                    $payload = ($token -split '\.')[1]
+                [void]ValidateTokenPermissions([string]$newToken) {
+                    $payload = ($newToken -split '\.')[1]
 
                     # Sleep a little amount of time because the dotnet conversion method fails somethimes if the payload does not get into memory fast enough
                     try {

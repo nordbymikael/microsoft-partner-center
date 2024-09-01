@@ -1,6 +1,6 @@
-[System.String]$tenantId = ""
-[System.String]$clientId = ""
-[System.String]$clientSecret = ""
+[System.String]$TenantId = ""
+[System.String]$ClientId = ""
+[System.String]$ClientSecret = ""
 
 
 
@@ -9,8 +9,12 @@
 ####################################################################################################
 
 Import-Module CustomMicrosoftPartnerCenter
-Connect-CMPC -tenantId $tenantId -clientId $clientId -clientSecret $clientSecret
+Connect-CMPC -TenantId $TenantId -ClientId $ClientId -ClientSecret $ClientSecret
 
+$AllAdminRelationships = Get-CMPCAdminRelationship
+$LegacyMLTAdminRelationships = $AllAdminRelationships | Where-Object {$_.displayName.StartsWith("MLT_")} | Where-Object {$_.status -notin "terminated","terminationRequested","terminating"}
 
+Write-Host -Object "Active, created and pending approval Legacy MLT admin relationships:`n"
+$LegacyMLTAdminRelationships
 
 Disconnect-CMPC

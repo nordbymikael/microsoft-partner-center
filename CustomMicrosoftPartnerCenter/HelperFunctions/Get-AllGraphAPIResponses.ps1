@@ -2,7 +2,8 @@ function Get-AllGraphAPIResponses {
     [CmdletBinding()]
 
     param (
-        [Parameter(Mandatory = $true)] [System.String]$Uri
+        [Parameter(Mandatory = $true)]
+        [System.String]$Uri
     )
     
     begin

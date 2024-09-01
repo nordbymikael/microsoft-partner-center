@@ -1,6 +1,6 @@
-[System.String]$tenantId = ""
-[System.String]$clientId = ""
-[System.String]$clientSecret = ""
+[System.String]$TenantId = ""
+[System.String]$ClientId = ""
+[System.String]$ClientSecret = ""
 
 [System.String]$adminRelationshipId = ""
 
@@ -9,7 +9,7 @@
 ####################################################################################################
 
 Import-Module CustomMicrosoftPartnerCenter
-Connect-CMPC -tenantId $tenantId -clientId $clientId -clientSecret $clientSecret
+Connect-CMPC -TenantId $TenantId -ClientId $ClientId -ClientSecret $ClientSecret
 
 $requiredAccessAssignments = $CMPC_AdminRelationshipUnifiedRoles | ConvertFrom-Json
 $missingAccessAssignments = @()

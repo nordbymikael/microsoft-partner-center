@@ -1,6 +1,6 @@
-[System.String]$tenantId = ""
-[System.String]$clientId = ""
-[System.String]$clientSecret = ""
+[System.String]$TenantId = ""
+[System.String]$ClientId = ""
+[System.String]$ClientSecret = ""
 
 ####################################################################################################
 # Define the variables above and run the script
@@ -11,7 +11,7 @@ Import-Module PartnerCenter
 Import-Module CustomMicrosoftPartnerCenter
 
 Connect-PartnerCenter -Tenant $tenantId -UseDeviceAuthentication
-Connect-CMPC -tenantId $tenantId -clientId $clientId -clientSecret $clientSecret
+Connect-CMPC -TenantId $TenantId -ClientId $ClientId -ClientSecret $ClientSecret
 
 $allPartnerCustomers = Get-PartnerCustomer
 $allAdminRelationships = Get-CMPCAdminRelationship

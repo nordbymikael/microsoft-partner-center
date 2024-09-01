@@ -1,6 +1,3 @@
-# Fix error when specifying auto extend with global administrator role (not supported)
-# Fix how to use a customer with the function
-
 function New-CMPCAdminRelationship {
     #REQUIRES -Version 4.0
     #REQUIRES -Modules Microsoft.PowerShell.Utility
@@ -13,9 +10,10 @@ function New-CMPCAdminRelationship {
     This function creates an admin relationship based either on parameters provided with the 
     This function validates the format of all parameters and also says if the unified roles values are nonexistent or incompatible with GDAP.
     
-    There are many validation steps within this function and unexpected errors are often considered anomalies.
+    There are many validation steps within this function and unexpected errors are rare.
     A common unexpected error is the presence of invalid characters in the DisplayName.
-    Another common unextected error is that the customer does not exist in Partner Center.
+
+    This function does not yet support to create the relationship for a specific customer.
 
     .PARAMETER DisplayName
     This is the display name for the admin relationship.
@@ -36,17 +34,14 @@ function New-CMPCAdminRelationship {
     When the admin relationship expires, this is the amount of days that the admin relationship automatically extends itself by.
     Supported values are 0 and 180.
 
-    .PARAMETER Customer
-    This is the customer for which you want to reserve the admin relationship.
-    The customer has to exist in Partner Center before this parameter becomes valid for the customer.
-
     .PARAMETER UsePredefinedVariables
     This parameter takes variables from the Configuration.ps1 file from the module.
-    This parameter does not support to create the relationship for a specific customer.
 
     .INPUTS
     The inputs of the function are the display name of the admin relationship, the duration of the admin relationship and the unified roles associated with the admin relationship.
-    Optionally, you can specify the auto extend duration and the customer for whom you want to reserve the admin relationship.
+    Optionally, you can specify the auto extend duration to automatically extend the admin relationship.
+
+    All these parameters can be predefined in the configuration file for this module. The formatting is properly checked.
 
     .OUTPUTS
     The output of the function is either an error with a description of what you have to change, or a successful response in a hashtable.
@@ -56,15 +51,27 @@ function New-CMPCAdminRelationship {
     Online version: https://github.com/nordbymikael/microsoft-partner-center#new-cmpcadminrelationship
 
     .NOTES
-    Advanced explanation of the code flow
+    First, all the parameters are defined and properly checked for any incorrect formatting.
+    The only exception is the check if the specified DisplayName is already used for another admin relationship, but if this is the case then the conflict error 409 is catched later and says that the specified DisplayName cannot be used.
+    After the validation process, the function creates the admin relationship, and if no errors are present the admin relationship is automatically locked for approval.
+    A simple throttling check is also implemented for the lockForApproval request. If the first try responss with a 405 status code, then the command is retried after 5000 milliseconds.
+    The response is the general information about the admin relationship, as well as the invitation link that you can send to the customer.
+    A terminating error is thrown if something went wrong.
 
     .EXAMPLE
-    Cmdlet -parameter "parameter"
-    Text
+    New-CMPCAdminRelationship -DisplayName "AdminRelationshipNameTest" -Duration "720" -UnifiedRoles "194ae4cb-b126-40b2-bd5b-6091b380977d","62e90394-69f5-4237-9190-012177145e10"
+    This example shows how to create a new admin relationship with the name "AdminRelationshipNameTest", 720 days duration and the Security Administrator role and the Global Administrator role (not recommended, choose roles with less privilege).
+    Since the UnifiedRoles is a comma separated list of strings (an array), you can add more roles by adding a comma and a new string.
 
     .EXAMPLE
-    Cmdlet -parameter "parameter"
-    Text
+    New-CMPCAdminRelationship -DisplayName "AdminRelationshipNameTest" -Duration "720" -UnifiedRoles "194ae4cb-b126-40b2-bd5b-6091b380977d" -AutoExtendDuration "180"
+    This example shows how to create a new admin relationship with the Security Administrator role and how to enable auto extention by 180 days.
+    Auto extention cannot be used with the Global Administrator role.
+
+    .EXAMPLE
+    New-CMPCAdminRelationship -UsePredefinedVariables
+    This example shows how to create a new admin relationship using the predefined variables from the configuration file within the module.
+    Be careful with the formatting when using this parameter. The function will detect any formatting errors.
     #>
 
     [CmdletBinding(
@@ -79,6 +86,9 @@ function New-CMPCAdminRelationship {
     param (
         [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
         [ValidateCount(1, 50)]
+        [ValidateScript({
+            Get-AdminRelationshipIdFromName -AdminRelationshipDisplayName $_ > $null
+        })]
         [System.String]$DisplayName,
 
         [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
@@ -93,10 +103,12 @@ function New-CMPCAdminRelationship {
         [System.String]$Duration,
         
         [Parameter(Mandatory = $true, ParameterSetName = "Direct")]
-        [ValidateCount(1, 72)]
+        [ValidateCount(1, 73)]
         [ValidatePattern("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
         [ValidateScript({
-            foreach ($role in $_) {
+            $UnifiedRoles = $_
+
+            foreach ($role in $UnifiedRoles) {
                 if ($role -in $CMPC_SupportedRoles)
                 {
                     $true
@@ -105,20 +117,29 @@ function New-CMPCAdminRelationship {
                     throw "The role `"$($role)`" in the UnifiedRoles parameter is either not an Entra built-in role or it exists but is incompatible with admin relationships. Remove the role and try again."
                 }
             }
+
+            if ("62e90394-69f5-4237-9190-012177145e10" -in $UnifiedRoles -and $AutoExtendDuration -ne "PT0S")
+            {
+                throw "Admin relationships with the Global Administrator role cannot be auto extended. Remove the Global Administrator role from the UnifiedRoles or remove the AutoExtendDuration."
+            }
         })]
-        [string[]]$UnifiedRoles,
+        [System.String[]]$UnifiedRoles,
 
         [Parameter(Mandatory = $false, ParameterSetName = "Direct")]
         [ValidatePattern("^(0|180)$")]
         [System.String]$AutoExtendDuration = "PT0S",
 
+        <#
+        Not added support for binding admin relationships to customers because for data validation purposes it is required to use the Microsoft Partner Center API which I do not have open access to.
+        Both display name and tenant ID are required, but to make the function user friendly I want to only require the tenant ID. Because of the API issue, I did not have the opportunity to implement this.
+
         [Parameter(Mandatory = $false, ParameterSetName = "Direct")]
         [ValidatePattern("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
-        [System.String]$Customer,
+        [System.String]$CustomerTenantId
+        #>
 
         [Parameter(Mandatory = $true, ParameterSetName = "ConfigurationFile")]
         [ValidateScript({
-            # Validate CMPC_AdminRelationshipUnifiedRoles
             try {
                 foreach ($role in ($CMPC_AdminRelationshipUnifiedRoles | ConvertFrom-Json))
                 {
@@ -136,7 +157,6 @@ function New-CMPCAdminRelationship {
                 throw "Roles are not properly formatted. See the template file for reference."
             }
 
-            # Validate CMPC_AdminRelationshipDisplayName
             if (-not ([System.String]::IsNullOrEmpty($CMPC_AdminRelationshipDisplayName) -and $CMPC_AdminRelationshipDisplayName -is [System.String])) {
                 throw "CMPC_AdminRelationshipDisplayName must be a string."
             }
@@ -144,7 +164,6 @@ function New-CMPCAdminRelationship {
                 throw "CMPC_AdminRelationshipDisplayName must have between 1 and 50 characters."
             }
 
-            # Validate CMPC_AdminRelationshipDuration
             if (-not ([System.String]::IsNullOrEmpty($CMPC_AdminRelationshipDuration) -and $CMPC_AdminRelationshipDuration -is [System.String])) {
                 throw "CMPC_AdminRelationshipDuration must be a string."
             }
@@ -152,9 +171,12 @@ function New-CMPCAdminRelationship {
                 throw "The value for Duration must be a number between 1 and 720."
             }
 
-            # Validate CMPC_AdminRelationshipAutoExtendDuration
             if (![System.String]::IsNullOrEmpty($CMPC_AdminRelationshipAutoExtendDuration -and $CMPC_AdminRelationshipAutoExtendDuration -notmatch "^(0|180)$")) {
                 throw "AutoExtendDuration must be either `"0`" or `"180`"."
+            }
+            if ("62e90394-69f5-4237-9190-012177145e10" -in $CMPC_AdminRelationshipUnifiedRoles.roleDefinitionId -and $CMPC_AdminRelationshipAutoExtendDuration -match "^(0|180)$")
+            {
+                throw "Admin relationships with the Global Administrator role cannot be auto extended. Remove the Global Administrator role from the UnifiedRoles or remove the AutoExtendDuration."
             }
         })]
         [System.Management.Automation.SwitchParameter]$UsePredefinedVariables
@@ -184,11 +206,6 @@ function New-CMPCAdminRelationship {
             {
                 # ISO 8601 format date
                 $Body.autoExtendDuration = "P$($AutoExtendDuration)D"
-            }
-            if ($Customer)
-            {
-                $Body.customer = @{}
-                $Body.customer.tenantId = $Customer
             }
         }
         elseif ($PSCmdlet.ParameterSetName -eq "ConfigurationFile")
@@ -221,14 +238,14 @@ function New-CMPCAdminRelationship {
         }
         catch [System.Net.WebException] {
             $response = $_.Exception.Response
-            $statusCode = [int]$response.StatusCode
+            $statusCode = [System.Int32]$response.StatusCode
 
             switch ($statusCode) {
                 409 {
                     throw "Conflict error 409, there is already an admin relationship with the provided DisplayName. Choose another DisplayName."
                 }
                 400 {
-                    throw "Bad request error 400, this an unexpected error but the issue might be in the DisplayName parameter. Try a different name to see if some characters that you provided are not supported by admin relationships. Another common error is that the customer tenant ID does not exist in Partner Center."
+                    throw "Bad request error 400, this an unexpected error but the issue might be in the DisplayName parameter. Try a different name to see if some characters that you provided are not supported by admin relationships."
                 }
                 default {
                     throw "An unexpected error occurred: $($_)"
@@ -246,15 +263,21 @@ function New-CMPCAdminRelationship {
         }
         catch {
             $response = $_.Exception.Response
-            $statusCode = [int]$response.StatusCode
+            $statusCode = [System.Int32]$response.StatusCode
 
             switch ($statusCode) {
                 405 {
                     # This code block should normally not run, but if it for some reason does, throttling may be the cause
                     Start-Sleep -Milliseconds 5000
-                    Invoke-RestMethod -Method "Post" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipCreation.id)/requests" -Headers $Headers -Body ($Body | ConvertTo-Json) -ContentType "application/json" > $null
+                    
+                    try {
+                        Invoke-RestMethod -Method "Post" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipCreation.id)/requests" -Headers $Headers -Body ($Body | ConvertTo-Json) -ContentType "application/json" > $null
+                        Write-Warning -Message "Method Not Allowed error 405, the admin relationship was successfully created and locked for approval but the code flow thought the admin relationship does not exist. You may be throttled."
+                    }
+                    catch {
+                        throw "An unexpected error occurred: $($_)"
+                    }
 
-                    Write-Warning -Message "Method Not Allowed error 405, the admin relationship was successfully created and locked for approval but the code flow thought the admin relationship does not exist. You may be throttled."
                 }
                 default {
                     throw "An unexpected error occurred: $($_)"

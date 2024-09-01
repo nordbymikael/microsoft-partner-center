@@ -63,11 +63,14 @@ function Get-CMPCAdminRelationship {
     )]
 
     param (
-        [Parameter(Mandatory = $true, ParameterSetName = "AdminRelationship")]
+        [Parameter(Mandatory = $true, ParameterSetName = "AdminRelationshipId")]
         [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+        [ValidateScript({
+            Confirm-AdminRelationshipExistence -AdminRelationshipId $_
+        })]
         [System.String]$AdminRelationshipId,
         
-        [Parameter(Mandatory = $false, ParameterSetName = "AdminRelationship")]
+        [Parameter(Mandatory = $false, ParameterSetName = "AdminRelationshipId")]
         [Parameter(Mandatory = $false, ParameterSetName = "AllAdminRelationships")]
         [System.Management.Automation.SwitchParameter]$ExtendedInformation
     )
@@ -79,7 +82,7 @@ function Get-CMPCAdminRelationship {
 
     process
     {
-        if (!$AdminRelationshipId)
+        if ($PSCmdlet.ParameterSetName -contains "AllAdminRelationships")
         {
             $adminRelationshipCollection = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships"
     
@@ -102,7 +105,7 @@ function Get-CMPCAdminRelationship {
             
             return $adminRelationshipCollection
         }
-        else {
+        elseif ($PSCmdlet.ParameterSetName -contains "AdminRelationshipId") {
             $headers = @{
                 Authorization = "Bearer $($authTokenManager.GetValidToken())"
             }

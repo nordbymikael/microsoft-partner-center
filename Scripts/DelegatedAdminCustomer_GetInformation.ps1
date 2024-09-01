@@ -1,6 +1,6 @@
-[System.String]$tenantId = ""
-[System.String]$clientId = ""
-[System.String]$clientSecret = ""
+[System.String]$TenantId = ""
+[System.String]$ClientId = ""
+[System.String]$ClientSecret = ""
 
 [System.String]$delegatedAdminCustomerTenantId = ""
 [System.Boolean]$extendedInformation = $true
@@ -10,7 +10,7 @@
 ####################################################################################################
 
 Import-Module CustomMicrosoftPartnerCenter
-Connect-CMPC -tenantId $tenantId -clientId $clientId -clientSecret $clientSecret
+Connect-CMPC -TenantId $TenantId -ClientId $ClientId -ClientSecret $ClientSecret
 
 $delegatedAdminCustomerInformation = Get-CMPCDelegatedAdminCustomer -CustomerTenantId $delegatedAdminCustomerTenantId -ExtendedInformation:$extendedInformation
 

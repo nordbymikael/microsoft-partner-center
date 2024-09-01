@@ -44,6 +44,9 @@ function Get-CMPCAdminRelationshipRequests {
     param (
         [Parameter(Mandatory = $true, ParameterSetName = "Default")]
         [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+        [ValidateScript({
+            Confirm-AdminRelationshipExistence -AdminRelationshipId $_
+        })]
         [System.String]$AdminRelationshipId
     )
 

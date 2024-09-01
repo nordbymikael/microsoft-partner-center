@@ -48,7 +48,10 @@ function Get-CMPCDelegatedAdminCustomerServiceManagementDetails {
     param (
         [Parameter(Mandatory = $true, ParameterSetName = "Default")]
         [ValidatePattern("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
-        [System.String]$TenantId
+        [ValidateScript({
+            Confirm-AdminCustomerExistence -CustomerTenantId $_
+        })]
+        [System.String]$CustomerTenantId
     )
 
     begin
@@ -59,7 +62,7 @@ function Get-CMPCDelegatedAdminCustomerServiceManagementDetails {
     process
     {
         try {
-            $ServiceManagementDetails = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/DelegatedAdminCustomers/$($TenantId)/serviceManagementDetails"
+            $ServiceManagementDetails = Get-AllGraphAPIResponses -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/DelegatedAdminCustomers/$($CustomerTenantId)/serviceManagementDetails"
         }
         catch {
             throw "Could not get the service management details from the delegated admin customer, verify that the provided Tenant ID is correct. Exception: $($_)"

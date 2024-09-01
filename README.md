@@ -26,7 +26,6 @@
 - Therefore, the creation of a new access assignment on a security group will trigger a 409 error if an active access assignment on the same security group already exists
 - To edit an active access assignment, use the Edit-CMPCAdminRelationshipAccessAssignment function in this module
 
-
 ### About requests
 - A lockForApproval request is required for the relationship to be accepted
 - Without a lockForApproval request, the relationship has the created status and can be modified, meanwhile only the auto extend duration and the presence of the Global Administrator role can be changed after the lockForApproval
@@ -48,14 +47,14 @@
 ## Preparation
 
 ### Dependencies on other modules
-The module has no dependencies on other PowerShell modules, and the cmdlets are based on REST APIs provided by Microsoft.
+The module has no dependencies on other Powershell modules, and the functions' functionality is based on Graph API.
 
 ### Access token and API permissions
-To use the module, you will use the New-CMPCAccessToken cmdlet to obtain an access token which will be used by the other cmdlets.
+To use the module, you will use the Connect-CMPC function to obtain an access token which will be used by the other functions.
+The authorization will be fully managed by the backend of the module.
 The module requires the "DelegatedAdminRelationship.ReadWrite.All" API permission in the access token to function.
-The New-CMPCAccessToken cmdlet also uses a client secret to authenticate.
 
-Follow the steps below to create an app registration with the correct API permissions and the client secret:
+Follow the steps below to create an app registration with the correct API permissions and a client secret to authenticate:
 1. Sign in to Entra admin center at least as an Application Administrator
 2. Browse to "Identity -> Applications -> App registrations"
 3. Click on "New registration" and provide the following information
@@ -76,23 +75,25 @@ Note the "Value" next to the secret, it won't appear in the portal again
 13. After clicking on "Add permissions" in the previous step, remain on the same window and click on "Grant admin consent for {tenant name}"
 
 ### [Optional] Module variables
-In the module source files, navigate to the "...\CustomMicrosoftPartnerCenter\Variables" folder.
+In the module source files, navigate to the "...\CustomMicrosoftPartnerCenter\Configuration" folder.
+Here you will find a configuration template Configuration.ps1 that is meant to be a template for a proper admin relationship infrastructire.
+If you are planning on implementing admin relationships in an organization, use this template to standarize the admin relationships.
 
 #### Authentication
-In the authentication.ps1 file, you can save the values for your Tenant ID, Client ID and the Client secret in the variables.
+In the Configuration.ps1 file, you can save the values for your Tenant ID, Client ID and the Client secret in the variables.
 You should know what values to put in the variables if you have followed the whole preparation process.
 It is strongly recommended to use Azure Key Vault and return the values into the variables from Key Vault, rather than paste the values as plain text directly into the variables.
-If you specify the variables in the authentication.ps1 file, you won't need to specify the Tenant ID, Client ID and the Client secret every time you obtain a new access token.
-Alternatively, you can leave the variables in "authentication.ps1" empty and provide all the associated parameters manually when you call the New-CMPCAccessToken cmdlet.
+If you specify the variables in the Configuration.ps1 file, you won't need to specify the Tenant ID, Client ID and the Client secret every time you use Connect-CMPC.
+Alternatively, you can leave the variables in "Configuration.ps1" empty and provide all the associated parameters manually when you call the Connect-CMPC function.
 
 #### Admin relationship configuration
-In the adminRelationship.ps1, you can save values for your admin relationship configuration.
+In the Configuration.ps1, you can save values for your admin relationship configuration.
 Some examples are the standard name of the admin relationship, the standard duration or lifetime of the admin relationship, as well as the auto extend duration.
-If you specify the values for the variables, you won't need to specify the parameters each time you create a new admin relationship using the New-CMPCAdminRelationship cmdlet.
-If you leave these variables empty, you have to specify them each time using the associated cmdlet paramenters when you call the New-CMPCAdminRelationship.ps1 cmdlet.
+If you specify the values for the variables, you won't need to specify the parameters each time you create a new admin relationship using the New-CMPCAdminRelationship function.
+If you leave these variables empty, you have to specify them each time using the associated function parameters when you call the New-CMPCAdminRelationship.ps1 function.
 
 #### Standarization of the admin relationship structure
-The $CMPC_GDAPAccess variable in the adminRelationship.ps1 file is a JSON object which contains all the built-in Entra roles that can be associated with admin relationships.
+The $CMPC_GDAPAccess variable in the Configuration.ps1 file is a JSON object which contains all the built-in Entra roles that can be associated with admin relationships.
 If you specify any security groups 
 Note that not all Entra built-in roles in the Microsoft's list of RBAC roles can be associated with admin relationships, and some roles may have limitations.
 Some important limitations to consider are that roles granting access to Business Applications (Power BI, Power Platform and Dynamics 365) and SharePoint, might not work properly because these capabilities are still experimental in Microsoft Partner Center.
@@ -104,77 +105,11 @@ In addition, if you choose to include the Global Administrator role in the admin
 Specify the full file path to the CustomMicrosoftPartnerCenter.psm1 file when importing the module, as shown in the command below.
 Import-Module -FullyQualifiedName "...\CustomMicrosoftPartnerCenter.psm1"
 
-### Cmdlet documentation
+### function documentation
 
-#### New-CMPCAccessToken
-Description: Authenticates and returns an access token (Bearer token) using an app registration with a client secret. The token will contain all the admin consented API permissions on the app registration. Provide your own values using the attributes, or read the *Preparation* to understand how to provide standard values for the attributes by using the "...\CustomMicrosoftPartnerCenter\Variables\authentication.ps1" file.
+Not yet created online version
 
-Parameters:
-- tenantId [String] [*Optional / Mandatory*] (provide the Tenant ID in which the app registration exists)
-- clientId [String] [*Optional / Mandatory*] (provide the Client ID or Application ID associated with your app registration)
-- clientSecret [String] [*Optional / Mandatory*] (provide the client secret associated with your app registration)
-
-Example 1: Obtain an access token by using the attributes
-```powershell
-$accessToken = New-CMPCAccessToken -tenantId "GUID" -clientId "GUID" -clientSecret "GUID"
-```
-*Response: A JSON Web Token (JWT) as a string*
-
-Example 2: Obtain an access token by preparing standard values for the attributes
-```powershell
-# In the "...\CustomMicrosoftPartnerCenter\Variables\authentication.ps1" file, specify the correct values for the variables
-$accessToken = New-CMPCAccessToken
-```
-*Response: A JSON Web Token (JWT) as a string*
-
-#### Get-CMPCAdminRelationship
-Description: Returns a PowerShell object with either only the general admin relationship info, or all admin relationship info (the general admin relationship info, access assignments info, operations info and requests info). Choose between returning info about only one specific relationship or all the existing relationships.
-
-Parameters:
-- **accessToken** [String] [*Mandatory*] (retrieve the access token by using the New-CMPCAccessToken cmdlet, and provide it as a parameter for authorization purposes)
-- **adminRelationshipId** [String] [*Optional*] (provide the admin relationship ID to return information about only one specific admin relationship, or leave the parameter empty to return information about all the existing admin relationships)
-- **extendedInformation** [Switch] [*Optional*] (you can choose to include all info by activating the switch, or include only the general info by not specifying the switch (if you retrieve extended information about all the existing admin relationships, the time to complete the command may be significant))
-
-Example 1: Retrieve extended information about only one specific admin relationship
-```powershell
-$accessToken = New-CMPCAccessToken -tenantId "GUID" -clientId "GUID" -clientSecret "GUID"
-$adminRelationship = Get-CMPCAdminRelationship -accessToken $accessToken -adminRelationshipId "GUID-GUID" -extendedInformation
-```
-*Response: A PowerShell object with the following format*
-```powershell
-$adminRelationship = @{
-    "@" = ... # A PowerShell object with general info
-    AccessAssignments = ... # A PowerShell object with access assignments info
-    Operations = ... # A PowerShell object with operations info
-    Requests = ... # A PowerShell object with requests info
-}
-```
-
-Example 2: Retrieve extended information about all existing admin relationships
-```powershell
-$accessToken = New-CMPCAccessToken -tenantId "GUID" -clientId "GUID" -clientSecret "GUID"
-$adminRelationship = Get-CMPCAdminRelationship -accessToken $accessToken -extendedInformation
-```
-*Response: An array with the following format*
-```powershell
-$adminRelationships = @(
-    @{
-        "@" = ... # A PowerShell object with general info of one admin relationship
-        AccessAssignments = ... # A PowerShell object with access assignments info of one admin relationship
-        Operations = ... # A PowerShell object with operations info of one admin relationship
-        Requests = ... # A PowerShell object with requests info of one admin relationship
-    },
-    @{
-        "@" = ... # A PowerShell object with general info of another admin relationship
-        AccessAssignments = ... # A PowerShell object with access assignments info of another admin relationship
-        Operations = ... # A PowerShell object with operations info of another admin relationship
-        Requests = ... # A PowerShell object with requests info of another admin relationship
-    },
-    ...
-)
-```
-
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -194,7 +129,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -214,7 +149,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -234,7 +169,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -254,7 +189,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -274,7 +209,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -294,7 +229,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -314,7 +249,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -334,7 +269,7 @@ some code
 
 Response: 
 
-#### Cmdlet
+#### function
 Description: 
 
 Parameters:
@@ -355,7 +290,7 @@ some code
 Response: 
 
 ### Debugging
-If any cmdlet fails, it terminates the script execution and provides an explanation of the failure, as well as the generic PowerShell exception message.
+If any function fails, it terminates the script execution and provides an explanation of the failure, as well as the generic Powershell exception message.
 
 ## References 
 
@@ -369,7 +304,7 @@ https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permi
 *Note that this module's latest version is from 2020, and it does therefore not provide admin relationship functionality because GDAP did not exist at that time.*
 https://learn.microsoft.com/en-us/partner-center/developer/
 
-### Partner Center PowerShell module (community)
+### Partner Center Powershell module (community)
 *Note that this module's latest version is from 2020, and it does therefore not provide admin relationship functionality because GDAP did not exist at that time.*
 https://learn.microsoft.com/en-us/powershell/partnercenter/overview?view=partnercenterps-3.0
 https://www.powershellgallery.com/packages/PartnerCenter/3.0.10
@@ -377,20 +312,22 @@ https://github.com/microsoft/Partner-Center-PowerShell
 
 ## Patch notes
 
-### version 2.0.0
+### version 0.8.0
 Release date: 01.09.2024 (dd.mm.yyyy)
+Release name: Early beta test
 Release notes:
 - The module was rewritten from scratch to remove the company's ownership of the SDK product
 - The module is now for both personal and corporative use, but all organizations are allowed to use this module
 - Note that the module is still copyright
 - The module now provides customization options using module variables
 - Rework of the authentication process, which removed the dependency on the Microsoft Authentication Library (MSAL.PS) module
-- Added new cmdlets for GDAP removal, GDAP access assignment removal and to retrieve all customers in Microsoft Partner Center without the need of any additional Powershell modules and backend API endpoints
-- Added new cmdlets for management of admin customers (partner customers with at least one associated admin relationship that has the active status)
+- Added new functions for GDAP removal, GDAP access assignment removal and to retrieve all customers in Microsoft Partner Center without the need of any additional Powershell modules and backend API endpoints
+- Added new functions for management of admin customers (partner customers with at least one associated admin relationship that has the active status)
 - A new documentation for the updated module was written
 - Powershell best practises were applied to generate the m
 
-### version 1.0.0
+### version 0.7.0
 Release date: 01.03.2024 (dd.mm.yyyy)
+Release name: First prerelease
 Release notes:
-- The module was released for the first time and was designed specifically for an IT company for GDAP administration purposes, with strict naming policy control and strict quality checks.
+- The module was released for the first time and was designed specifically for an IT company for GDAP administration purposes, with a standarized naming policy control and strict quality checks.

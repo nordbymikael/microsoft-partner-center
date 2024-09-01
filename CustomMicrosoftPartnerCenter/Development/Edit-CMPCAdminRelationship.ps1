@@ -44,26 +44,66 @@ function Edit-CMPCAdminRelationship {
     
     [CmdletBinding(
         ConfirmImpact = "High",
+        DefaultParameterSetName = "Parameters",
         HelpUri = "https://github.com/nordbymikael/microsoft-partner-center#edit-cmpcadminrelationship",
         SupportsPaging = $false,
         SupportsShouldProcess = $true,
         PositionalBinding = $true
     )]
     param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)] [System.Object[]]$adminRelationshipId,
-        [Parameter(Mandatory = $false)] [ValidateCount(1, 72)] [System.Object[]]$unifiedRoles,
-        [Parameter(Mandatory = $false)] [System.String]$autoExtendDuration,
-        [Parameter(Mandatory = $false)] [System.String]$customerTenantId,
-        [Parameter(Mandatory = $false)] [System.String]$displayName,
-        [Parameter(Mandatory = $false)] [System.String]$duration,
-        [Parameter(Mandatory = $false)] [System.Management.Automation.SwitchParameter]$usePredefinedUnifiedRoles,
-        [Parameter(Mandatory = $false)] [System.Management.Automation.SwitchParameter]$usePredefinedVariables
+        [Parameter(Mandatory = $true, ParameterSetName = "Parameters", ValueFromPipeline = $true)]
+        [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+        [ValidateScript({
+            Confirm-AdminRelationshipExistence -AdminRelationshipId $_
+        })]
+        [System.String]$adminRelationshipId,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Parameters")]
+        [ValidateCount(1, 73)]
+        [ValidatePattern("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+        [ValidateScript({
+            $UnifiedRoles = $_
+
+            foreach ($role in $UnifiedRoles) {
+                if ($role -in $CMPC_SupportedRoles)
+                {
+                    $true
+                }
+                else {
+                    throw "The role `"$($role)`" in the UnifiedRoles parameter is either not an Entra built-in role or it exists but is incompatible with admin relationships. Remove the role and try again."
+                }
+            }
+
+            if ("62e90394-69f5-4237-9190-012177145e10" -in $UnifiedRoles -and $AutoExtendDuration -ne "PT0S")
+            {
+                throw "Admin relationships with the Global Administrator role cannot be auto extended. Remove the Global Administrator role from the UnifiedRoles or remove the AutoExtendDuration."
+            }
+        })]
+        [System.String[]]$unifiedRoles,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Parameters")]
+        [ValidatePattern("^(0|180)$")]
+        [System.String]$AutoExtendDuration,
+
+        <#
+        [Parameter(Mandatory = $false, ParameterSetName = "Parameters")]
+        [System.String]$customerTenantId,
+        #>
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Parameters")]
+        [System.String]$displayName,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Parameters")]
+        [System.String]$duration
     )
-    #ferdig, må testes
+    
     begin
     {
         Confirm-AccessTokenExistence
-        
+    }
+
+    process
+    {
         $headers = @{
             Authorization = "Bearer $($authTokenManager.GetValidToken())"
         }
@@ -71,12 +111,19 @@ function Edit-CMPCAdminRelationship {
 
         if ($unifiedRoles)
         {
-            $body.accessDetails.unifiedRoles = $unifiedRoles
+            $body.accessDetails = @{unifiedRoles = @()}
+            
+            foreach ($role in $UnifiedRoles)
+            {
+                $Body.accessDetails.unifiedRoles += @{"roleDefinitionId" = $role}
+            }
         }
+        <#
         if ($customerTenantId)
         {
-            $body.customer = @{tenantId=$customerTenantId}
+            $body.customer = @{tenantId = $customerTenantId}
         }
+        #>
         if ($autoExtendDuration)
         {
             $body.autoExtendDuration = $autoExtendDuration
@@ -89,34 +136,10 @@ function Edit-CMPCAdminRelationship {
         {
             $body.displayName = $displayName
         }
-    
-        if ($usePredefinedVariables)
-        {
-            if ($CMPC_AdminRelationshipDisplayName)
-            {
-                $displayName = $CMPC_AdminRelationshipDisplayName
-            }
-            if ($CMPC_AdminRelationshipDuration)
-            {
-                $duration = $CMPC_AdminRelationshipDuration
-            }
-            if ($CMPC_AdminRelationshipAutoExtendDuration)
-            {
-                $autoExtendDuration = $CMPC_AdminRelationshipAutoExtendDuration
-            }
-        }
-    }
 
-    process
-    {
-        try {
-            $adminRelationship = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
-            $headers."If-Match" = $adminRelationship."@odata.etag"
-        }
-        catch {
-            throw "Failed to retrieve the admin relationship status and etag for precondition validation."
-        }
-    
+        $adminRelationship = Invoke-RestMethod -Method "Get" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers
+        $headers."If-Match" = $adminRelationship."@odata.etag"
+
         switch ($adminRelationship.status)
         {
             "active" {
@@ -125,16 +148,16 @@ function Edit-CMPCAdminRelationship {
                 }
                 try {
                     Invoke-WebRequest -Method "Patch" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers -Body ($body | ConvertTo-Json) -ContentType "application/json" > $null
-                    Write-Output -InputObject "Successfully changed the admin relationship $($adminRelationshipId)."
+                    Write-Output -InputObject "Successfully changed the admin relationship."
                 }
                 catch {
-                    throw "Failed to update $($adminRelationshipId) becase at least one of the requested changes is not properly formatted."
+                    throw "Failed to update the admin relationship becase at least one of the requested changes is not properly formatted."
                 }
             }
             "created" {
                 try {
                     Invoke-WebRequest -Method "Patch" -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($adminRelationshipId)" -Headers $headers -Body ($body | ConvertTo-Json) -ContentType "application/json" > $null
-                    Write-Output -InputObject "Successfully changed the admin relationship $($adminRelationshipId)."
+                    Write-Host -Object "Successfully changed the admin relationship."
                 }
                 catch {
                     throw "Failed to update $($adminRelationshipId) becase at least one of the requested changes is not properly formatted."
