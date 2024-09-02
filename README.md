@@ -11,7 +11,7 @@
 ### About admin relationships
 - For the creation of an admin relationship, only a displayname, duration and minimum one role is required
 - Every admin relationship requires a unique name and it cannot exceed 50 characters and few special characters are supported
-- The duration is in the ISO 8601 format and it must be a value between P1D and P2Y (or P720D) inclusive
+- The duration is in the ISO 8601 format and it must be a value between P1D and P2Y (or P730D) inclusive
 - The auto extend duration is in the backend defined in the ISO 8601 format
 - If the auto extend duration is specified, the admin relationship will be automatically renewed
 - Supported valued for auto extend duration are P0D, PT0S and P180D
