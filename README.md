@@ -294,6 +294,9 @@ If any function fails, it terminates the script execution and provides an explan
 
 ## References 
 
+### Introduction to granular delegated admin privileges (GDAP)
+https://learn.microsoft.com/en-us/partner-center/customers/gdap-introduction
+
 ### Granular delegated admin privileges (GDAP) API overview
 https://learn.microsoft.com/en-us/graph/api/resources/delegatedadminrelationships-api-overview?view=graph-rest-1.0
 
